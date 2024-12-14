@@ -1,0 +1,49 @@
+#include <DHT.h>
+
+#define DHT22_PIN  5       // ESP32 pin GPIO19 connected to DHT22 sensor
+#define smokeSensor 4      // Define pin 4 for smoke sensor (analog pin)
+#define FAN_PIN 33         // LED pin for smoke warning (GPIO33)
+
+DHT dht22(DHT22_PIN, DHT22);  // Initialize DHT22 object
+
+void setup() {
+  Serial.begin(9600);            // Start the serial communication
+  dht22.begin();                 // Initialize the DHT22 sensor
+  pinMode(smokeSensor, INPUT);   // Set smoke sensor pin as input (analog)
+  pinMode(FAN_PIN, OUTPUT);      // Set the LED pin as output
+}
+
+void loop() {
+  // Read from DHT22 sensor
+  float humi  = dht22.readHumidity();         // Read humidity
+  float tempC = dht22.readTemperature();      // Read temperature in Celsius
+  float tempF = dht22.readTemperature(true);  // Read temperature in Fahrenheit
+
+  // Check if the DHT22 reading is successful
+  if (isnan(tempC) || isnan(tempF) || isnan(humi)) {
+    Serial.println("Failed to read from DHT22 sensor!");
+  } else {
+    Serial.print("Humidity: ");
+    Serial.print(humi);
+    Serial.print("%  |  Temperature: ");
+    Serial.print(tempC);
+    Serial.print("°C  ~  ");
+    Serial.print(tempF);
+    Serial.println("°F");
+  }
+
+  // Read from the smoke sensor
+  int smokeLevel = analogRead(smokeSensor);  // Generates a value from 0 to 4095
+  Serial.print("Smoke Sensor Reading: ");
+  Serial.println(smokeLevel);
+
+  // If smoke level exceeds the threshold, turn on the LED
+  if ((smokeLevel > 4095) || (humi > 60 c)) {  // Threshold value, adjust as necessary
+    digitalWrite(FAN_PIN, HIGH);   // Turn on LED
+  } else {
+    digitalWrite(FAN_PIN, LOW);    // Turn off LED
+  }
+
+  // Wait 2 seconds before the next reading
+  delay(2000);
+}
